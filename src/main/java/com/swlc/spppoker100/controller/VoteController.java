@@ -12,6 +12,8 @@ import org.springframework.messaging.handler.annotation.MessageMapping;
 import org.springframework.messaging.handler.annotation.Payload;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 
 /**
  * @author hp
@@ -23,6 +25,18 @@ public class VoteController {
     private SimpMessagingTemplate simpMessagingTemplate;
     @Autowired
     private VoteService voteService;
+
+//    @PostMapping("/private-message-just-connect")
+//    private ResponseEntity receivePrivateMessage(@RequestParam("ref") String room_ref) {
+//        AllVoteResponse result = voteService.justVote(room_ref);
+////        simpMessagingTemplate.convertAndSendToUser(room_ref, "/private", result); // /user/David/private
+//
+//        log.info("result: {} " + result.toString());
+//        return new ResponseEntity<>(
+//                new CommonResponseDTO(true, "", result),
+//                HttpStatus.OK
+//        );
+//    }
 
     @MessageMapping("/private-message")
     private ResponseEntity receivePrivateMessage(@Payload Vote vote) {

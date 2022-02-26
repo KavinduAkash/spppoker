@@ -8,4 +8,5 @@ import com.swlc.spppoker100.modal.Vote;
  */
 public interface VoteService {
     AllVoteResponse vote(Vote vote);
+    AllVoteResponse justVote(String room_ref);
 }

@@ -110,4 +110,35 @@ public class VoteServiceImpl implements VoteService {
             throw e;
         }
     }
+
+    @Override
+    public AllVoteResponse justVote(String room_ref) {
+        log.info("Execute Method: justVote: @param {} " + room_ref);
+        try {
+            Optional<SpppokerRoomEntity> roomByRoomRef = sppokerRepository.findByRoomRef(room_ref);
+            SpppokerRoomEntity spppokerRoomEntity = roomByRoomRef.get();
+            List<TempUserStoryPointEntity> allByRoomEntityAndStatus = tempUserStoryPointRepository.findAllByRoomEntityAndStatus(spppokerRoomEntity, VoteStatus.ACTIVE);
+            List<VoteResponse> allVotes = new ArrayList<>();
+
+            long uid = 0;
+            for (TempUserStoryPointEntity tempVote : allByRoomEntityAndStatus) {
+                uid = tempVote.getUserStoryEntity().getId();
+                allVotes.add(
+                        new VoteResponse(
+                                tempVote.getId(),
+                                tempVote.getUserEntity().getId(),
+                                tempVote.getUserEntity().getFirstName(),
+                                tempVote.getUserEntity().getLastName(),
+                                tempVote.getUserEntity().getRefNo(),
+                                tempVote.getVotedDate(),
+                                tempVote.getVote()
+                        )
+                );
+            }
+            return new AllVoteResponse(spppokerRoomEntity.getRoomRef(), uid, allVotes);
+        } catch (Exception e) {
+            log.error("Execute Method: justVote: Error ", e, e.getMessage());
+            throw e;
+        }
+    }
 }
