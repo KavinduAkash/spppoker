@@ -16,5 +16,5 @@ public class Vote {
     private long voter_id;
     private String room_ref;
     private long candidate_id;
-    private int vote;
+    private String vote;
 }
