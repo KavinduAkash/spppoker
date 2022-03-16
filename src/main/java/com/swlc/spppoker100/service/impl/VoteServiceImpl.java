@@ -30,14 +30,16 @@ public class VoteServiceImpl implements VoteService {
     private final ProjectSprintUserStoryRepository projectSprintUserStoryRepository;
     private final UserStoryRepository userStoryRepository;
     private final SppokerRepository sppokerRepository;
+    private final ProjectMemberRepository projectMemberRepository;
 
     @Autowired
-    public VoteServiceImpl(TempUserStoryPointRepository tempUserStoryPointRepository, UserRepository userRepository, ProjectSprintUserStoryRepository projectSprintUserStoryRepository, UserStoryRepository userStoryRepository, SppokerRepository sppokerRepository) {
+    public VoteServiceImpl(TempUserStoryPointRepository tempUserStoryPointRepository, UserRepository userRepository, ProjectSprintUserStoryRepository projectSprintUserStoryRepository, UserStoryRepository userStoryRepository, SppokerRepository sppokerRepository, ProjectMemberRepository projectMemberRepository) {
         this.tempUserStoryPointRepository = tempUserStoryPointRepository;
         this.userRepository = userRepository;
         this.projectSprintUserStoryRepository = projectSprintUserStoryRepository;
         this.userStoryRepository = userStoryRepository;
         this.sppokerRepository = sppokerRepository;
+        this.projectMemberRepository = projectMemberRepository;
     }
 
     @Override
@@ -60,18 +62,12 @@ public class VoteServiceImpl implements VoteService {
                             spppokerRoomEntity,
                             userStoryEntity
                     );
-
-            log.info("Execute Method: vote: @param {} 1");
-
             if (temp.isPresent()) {
-                log.info("Execute Method: vote: @param {} 1.1");
                 TempUserStoryPointEntity tempVote = temp.get();
                 tempVote.setVotedDate(new Date());
                 tempVote.setVote(vote.getVote());
                 tempUserStoryPointRepository.save(tempVote);
-                log.info("Execute Method: vote: @param {} 2");
             } else {
-                log.info("Execute Method: vote: @param {} 1.2");
                 tempUserStoryPointRepository.save(
                         new TempUserStoryPointEntity(
                             spppokerRoomEntity,
@@ -82,26 +78,46 @@ public class VoteServiceImpl implements VoteService {
                                 VoteStatus.ACTIVE
                         )
                 );
-                log.info("Execute Method: vote: @param {} 4");
             }
-            log.info("Execute Method: vote: @param {} 5");
             List<TempUserStoryPointEntity> allByRoomEntityAndUserStoryEntity = tempUserStoryPointRepository.findAllByRoomEntityAndUserStoryEntity(spppokerRoomEntity, userStoryEntity);
-            log.info("Execute Method: vote: @param {} 6");
-            List<VoteResponse> allVotes = new ArrayList<>();
 
-            for (TempUserStoryPointEntity tempVote : allByRoomEntityAndUserStoryEntity) {
-                allVotes.add(
-                        new VoteResponse(
-                                tempVote.getId(),
-                                tempVote.getUserEntity().getId(),
-                                tempVote.getUserEntity().getFirstName(),
-                                tempVote.getUserEntity().getLastName(),
-                                tempVote.getUserEntity().getRefNo(),
-                                tempVote.getVotedDate(),
-                                tempVote.getVote()
-                        )
-                );
+            log.info("Execute Method: vote: return data {} " + allByRoomEntityAndUserStoryEntity.size());
+
+            List<VoteResponse> allVotes = new ArrayList<>();
+            List<ProjectMemberEntity> byProjectEntity = projectMemberRepository.findByProjectEntity(userStoryEntity.getProjectEntity());
+            for (ProjectMemberEntity pm : byProjectEntity) {
+                boolean isExist = false;
+                for (TempUserStoryPointEntity tempVote : allByRoomEntityAndUserStoryEntity) {
+                    if(tempVote.getUserEntity().getId()==pm.getCorporateEmployeeEntity().getUserEntity().getId()) {
+                        isExist = true;
+                        allVotes.add(
+                                new VoteResponse(
+                                        tempVote.getId(),
+                                        tempVote.getUserEntity().getId(),
+                                        tempVote.getUserEntity().getFirstName(),
+                                        tempVote.getUserEntity().getLastName(),
+                                        tempVote.getUserEntity().getRefNo(),
+                                        tempVote.getVotedDate(),
+                                        tempVote.getVote()
+                                )
+                        );
+                    }
+                }
+                if(!isExist) {
+                    allVotes.add(
+                            new VoteResponse(
+                                    0,
+                                    pm.getCorporateEmployeeEntity().getUserEntity().getId(),
+                                    pm.getCorporateEmployeeEntity().getUserEntity().getFirstName(),
+                                    pm.getCorporateEmployeeEntity().getUserEntity().getLastName(),
+                                    pm.getCorporateEmployeeEntity().getUserEntity().getRefNo(),
+                                    new Date(),
+                                    "0"
+                            )
+                    );
+                }
             }
+//            log.info("Execute Method: vote: return data {} " + allVotes.size());
 
             return new AllVoteResponse(spppokerRoomEntity.getRoomRef(), userStoryEntity.getId(), allVotes);
 
@@ -119,22 +135,43 @@ public class VoteServiceImpl implements VoteService {
             SpppokerRoomEntity spppokerRoomEntity = roomByRoomRef.get();
             List<TempUserStoryPointEntity> allByRoomEntityAndStatus = tempUserStoryPointRepository.findAllByRoomEntityAndStatus(spppokerRoomEntity, VoteStatus.ACTIVE);
             List<VoteResponse> allVotes = new ArrayList<>();
-
+            List<ProjectMemberEntity> byProjectEntity = projectMemberRepository.findByProjectEntity(spppokerRoomEntity.getProjectEntity());
             long uid = 0;
-            for (TempUserStoryPointEntity tempVote : allByRoomEntityAndStatus) {
-                uid = tempVote.getUserStoryEntity().getId();
-                allVotes.add(
-                        new VoteResponse(
-                                tempVote.getId(),
-                                tempVote.getUserEntity().getId(),
-                                tempVote.getUserEntity().getFirstName(),
-                                tempVote.getUserEntity().getLastName(),
-                                tempVote.getUserEntity().getRefNo(),
-                                tempVote.getVotedDate(),
-                                tempVote.getVote()
-                        )
-                );
+            for (ProjectMemberEntity pm : byProjectEntity) {
+                boolean isExist = false;
+                for (TempUserStoryPointEntity tempVote : allByRoomEntityAndStatus) {
+                    if(tempVote.getUserEntity().getId()==pm.getCorporateEmployeeEntity().getUserEntity().getId()) {
+                        isExist = true;
+                        uid = tempVote.getUserStoryEntity().getId();
+                        allVotes.add(
+                                new VoteResponse(
+                                        tempVote.getId(),
+                                        tempVote.getUserEntity().getId(),
+                                        tempVote.getUserEntity().getFirstName(),
+                                        tempVote.getUserEntity().getLastName(),
+                                        tempVote.getUserEntity().getRefNo(),
+                                        tempVote.getVotedDate(),
+                                        tempVote.getVote()
+                                )
+                        );
+
+                    }
+                }
+                if(!isExist) {
+                    allVotes.add(
+                            new VoteResponse(
+                                    0,
+                                    pm.getCorporateEmployeeEntity().getUserEntity().getId(),
+                                    pm.getCorporateEmployeeEntity().getUserEntity().getFirstName(),
+                                    pm.getCorporateEmployeeEntity().getUserEntity().getLastName(),
+                                    pm.getCorporateEmployeeEntity().getUserEntity().getRefNo(),
+                                    new Date(),
+                                    "0"
+                            )
+                    );
+                }
             }
+
             return new AllVoteResponse(spppokerRoomEntity.getRoomRef(), uid, allVotes);
         } catch (Exception e) {
             log.error("Execute Method: justVote: Error ", e, e.getMessage());

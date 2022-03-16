@@ -35,6 +35,7 @@ public class TempUserStoryPointEntity {
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
     private Date votedDate;
     private String vote;
+    @Enumerated(EnumType.STRING)
     private VoteStatus status;
 
     public TempUserStoryPointEntity(SpppokerRoomEntity roomEntity, UserEntity userEntity, ProjectUserStoryEntity userStoryEntity, Date votedDate, String vote, VoteStatus status) {
