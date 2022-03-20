@@ -3,6 +3,7 @@ package com.swlc.spppoker100.service.impl;
 import com.swlc.spppoker100.entity.*;
 import com.swlc.spppoker100.enums.VoteStatus;
 import com.swlc.spppoker100.modal.AllVoteResponse;
+import com.swlc.spppoker100.modal.SavePoints;
 import com.swlc.spppoker100.modal.Vote;
 import com.swlc.spppoker100.modal.VoteResponse;
 import com.swlc.spppoker100.repository.*;
@@ -175,6 +176,22 @@ public class VoteServiceImpl implements VoteService {
             return new AllVoteResponse(spppokerRoomEntity.getRoomRef(), uid, allVotes);
         } catch (Exception e) {
             log.error("Execute Method: justVote: Error ", e, e.getMessage());
+            throw e;
+        }
+    }
+
+    @Override
+    public boolean savePoints(SavePoints vote) {
+        log.info("Execute Method: savePoints: @param {} " + vote);
+        try {
+            Optional<ProjectUserStoryEntity> byId = userStoryRepository.findById(vote.getCandidate_id());
+            ProjectUserStoryEntity projectUserStoryEntity = byId.get();
+            projectUserStoryEntity.setPoints(vote.getVote());
+            ProjectUserStoryEntity save = userStoryRepository.save(projectUserStoryEntity);
+            log.info("Execute Method: savePoints: XXXXX " + save.toString());
+            return true;
+        } catch (Exception e) {
+            log.error("Execute Method: savePoints: Error ", e, e.getMessage());
             throw e;
         }
     }

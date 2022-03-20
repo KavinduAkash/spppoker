@@ -1,8 +1,6 @@
 package com.swlc.spppoker100.controller;
 
-import com.swlc.spppoker100.modal.AllVoteResponse;
-import com.swlc.spppoker100.modal.CommonResponseDTO;
-import com.swlc.spppoker100.modal.Vote;
+import com.swlc.spppoker100.modal.*;
 import com.swlc.spppoker100.service.VoteService;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -46,6 +44,41 @@ public class VoteController {
         log.info("result: {} " + result.toString());
         return new ResponseEntity<>(
                 new CommonResponseDTO(true, "", result),
+                HttpStatus.OK
+        );
+    }
+
+    @MessageMapping("/private-us")
+    private ResponseEntity receiveUserStory(@Payload Vote vote) {
+//        AllVoteResponse result = voteService.vote(vote);
+        simpMessagingTemplate.convertAndSendToUser(vote.getRoom_ref(), "/private-ustory", vote.getCandidate_id()); // /user/David/private
+
+//        log.info("result: {} " + result.toString());
+        return new ResponseEntity<>(
+                new CommonResponseDTO(true, "", "XXXXXXXXX"),
+                HttpStatus.OK
+        );
+    }
+
+    @MessageMapping("/private-points")
+    private ResponseEntity savePoints(@Payload SavePoints vote) {
+        boolean result = voteService.savePoints(vote);
+        simpMessagingTemplate.convertAndSendToUser(vote.getRoom_ref(), "/private-save", result); // /user/David/private
+
+//        log.info("result: {} " + result.toString());
+        return new ResponseEntity<>(
+                new CommonResponseDTO(true, "", "XXXXXXXXX"),
+                HttpStatus.OK
+        );
+    }
+
+    @MessageMapping("/private-vote")
+    private ResponseEntity voteProcess(@Payload VoteProcess vote) {
+        simpMessagingTemplate.convertAndSendToUser(vote.getRoom_ref(), "/private-voting", vote.isVoting()); // /user/David/private
+
+//        log.info("result: {} " + result.toString());
+        return new ResponseEntity<>(
+                new CommonResponseDTO(true, "", "XXXXXXXXX"),
                 HttpStatus.OK
         );
     }

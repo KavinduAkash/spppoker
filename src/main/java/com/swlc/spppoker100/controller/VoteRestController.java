@@ -31,4 +31,16 @@ public class VoteRestController {
                 HttpStatus.OK
         );
     }
+
+//    @PostMapping("/private-message-just-connect")
+//    private ResponseEntity receivePrivateMessage(@RequestParam("ref") String room_ref) {
+//        AllVoteResponse result = voteService.justVote(room_ref);
+////        simpMessagingTemplate.convertAndSendToUser(room_ref, "/private", result); // /user/David/private
+//
+//        log.info("result: {} " + result.toString());
+//        return new ResponseEntity<>(
+//                new CommonResponseDTO(true, "", result),
+//                HttpStatus.OK
+//        );
+//    }
 }
